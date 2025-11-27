@@ -1,0 +1,4 @@
+apiVersion: v2
+name: haproxy-ingress
+version: 1.0.0
+description: A Helm chart for haproxy ingress k8s

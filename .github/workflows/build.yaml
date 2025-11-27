@@ -1,0 +1,17 @@
+name: Validate and Push HAProxy helm charts to Development
+
+on:
+  push:
+    branches-ignore:
+      - 'main'   
+
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  validate:
+    runs-on: robot-shop-runner-azure-dev
+
+  deploy:
+    runs-on: robot-shop-runner-azure-dev
