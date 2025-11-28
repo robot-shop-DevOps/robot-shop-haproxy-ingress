@@ -9,9 +9,80 @@ on:
     branches:
       - develop
 
+env:
+  namespace: haproxy-controller
+  haproxy_helm_chart_url: https://haproxytech.github.io/helm-charts
+  haproxy_helm_chart_version: 1.46.1
+
+
 jobs:
   validate:
     runs-on: robot-shop-runner-azure-dev
+    outputs:
+      chart_path: ${{ steps.helmcharts.outputs.chart_path }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: 3.9.0
+
+      - name: Validate helm charts
+        id: helmcharts
+        run: |
+          chart_path=$(find . -type d -name ".chart" -print -quit)
+          if [ -z $chart_path ]; then
+            echo "Error: Helm chart directory not found"
+            exit 1
+          fi
+          
+          echo "chart_path=$chart_path" >> $GITHUB_OUTPUT
+          cd $chart_path
+          helm lint 
 
   deploy:
+    if: ${{ github.ref_name == 'develop' }}
+    needs: validate
     runs-on: robot-shop-runner-azure-dev
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: 3.9.0
+
+      - name: Find project namespace
+        run: |
+          if kubectl get ns ${{ env.NAMESPACE }} > /dev/null; then
+            echo "namespace=${{ env.NAMESPACE }}" >> $GITHUB_ENV
+            echo "namespace_found=true" >> $GITHUB_ENV
+          fi
+
+      - name: Create project namespace
+        if: ${{ env.namespace_found != 'true'}}
+        run: |
+          set -e
+          if kubectl create ns ${{ env.NAMESPACE }} > /dev/null; then
+            echo "Namespace ${{ env.NAMESPACE }} created."
+          else
+            echo "Namespace ${{ env.NAMESPACE }} failed to create."
+          fi
+
+      - name: Add HAProxy helm repo
+        run: |
+          helm repo add haproxytech ${{ env.haproxy_helm_chart_url }}
+          helm repo update
+
+      - name: Deploy HAProxy Ingress controller
+        run: |
+          helm upgrade haproxy \
+            haproxytech/kubernetes-ingress \
+            --namespace ${{ env.NAMESPACE }} \
+            --install \
+            --version ${{ env.haproxy_helm_chart_version }} \
+            -f ${{ needs.validate.outputs.chart_path }}/values.yaml \
+            -f ${{ needs.validate.outputs.chart_path }}/values/values_dev.yaml
