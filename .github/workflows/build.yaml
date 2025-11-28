@@ -10,9 +10,9 @@ on:
       - develop
 
 env:
-  namespace: haproxy-controller
-  haproxy_helm_chart_url: https://haproxytech.github.io/helm-charts
-  haproxy_helm_chart_version: 1.46.1
+  NAMESPACE: haproxy-controller
+  HAPROXY_HELM_CHART_URL: https://haproxytech.github.io/helm-charts
+  HAPROXY_HELM_CHART_VERSION: 1.46.1
 
 
 jobs:
@@ -74,7 +74,7 @@ jobs:
 
       - name: Add HAProxy helm repo
         run: |
-          helm repo add haproxytech ${{ env.haproxy_helm_chart_url }}
+          helm repo add haproxytech ${{ env.HAPROXY_HELM_CHART_URL }}
           helm repo update
 
       - name: Deploy HAProxy Ingress controller
@@ -83,6 +83,6 @@ jobs:
             haproxytech/kubernetes-ingress \
             --namespace ${{ env.NAMESPACE }} \
             --install \
-            --version ${{ env.haproxy_helm_chart_version }} \
+            --version ${{ env.HAPROXY_HELM_CHART_VERSION }} \
             -f ${{ needs.validate.outputs.chart_path }}/values.yaml \
             -f ${{ needs.validate.outputs.chart_path }}/values/values_dev.yaml
