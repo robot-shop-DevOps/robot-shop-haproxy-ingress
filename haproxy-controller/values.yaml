@@ -1,0 +1,7 @@
+controller:
+  image:
+    repository: robotshopdevacr.azurecr.io/baseimages/haproxytech/kubernetes-ingress
+    tag: 3.1.14-internal
+    pullPolicy: Always
+
+  replicaCount: 1
