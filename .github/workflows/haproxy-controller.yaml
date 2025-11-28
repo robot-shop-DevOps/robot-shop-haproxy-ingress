@@ -1,25 +1,21 @@
-name: Validate and Push HAProxy helm charts to Development
+name: Validate and Push HAProxy Controller helm charts to Development
 
 on:
-  push:
-    branches-ignore:
-      - 'main'   
-
-  pull_request:
-    branches:
-      - develop
+  workflow_dispatch:
+    inputs:
+      HAPROXY_HELM_CHART_VERSION:
+        description: "The version of the HAProxy Controller to install"
+        required: true
+        default: "1.46.1"
 
 env:
   NAMESPACE: haproxy-controller
   HAPROXY_HELM_CHART_URL: https://haproxytech.github.io/helm-charts
-  HAPROXY_HELM_CHART_VERSION: 1.46.1
-
+  CHART_PATH: ./haproxy-controller
 
 jobs:
   validate:
     runs-on: robot-shop-runner-azure-dev
-    outputs:
-      chart_path: ${{ steps.helmcharts.outputs.chart_path }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,16 +26,8 @@ jobs:
           version: 3.9.0
 
       - name: Validate helm charts
-        id: helmcharts
         run: |
-          chart_path=$(find . -type d -name ".chart" -print -quit)
-          if [ -z $chart_path ]; then
-            echo "Error: Helm chart directory not found"
-            exit 1
-          fi
-          
-          echo "chart_path=$chart_path" >> $GITHUB_OUTPUT
-          cd $chart_path
+          cd ${{ env.CHART_PATH }}
           helm lint 
 
   deploy:
@@ -80,9 +68,9 @@ jobs:
       - name: Deploy HAProxy Ingress controller
         run: |
           helm upgrade haproxy \
-            haproxytech/kubernetes-ingress \
-            --namespace ${{ env.NAMESPACE }} \
-            --install \
-            --version ${{ env.HAPROXY_HELM_CHART_VERSION }} \
-            -f ${{ needs.validate.outputs.chart_path }}/values.yaml \
-            -f ${{ needs.validate.outputs.chart_path }}/values/values_dev.yaml
+          haproxytech/kubernetes-ingress \
+          --namespace ${{ env.NAMESPACE }} \
+          --install \
+          --version ${{ github.event.inputs.HAPROXY_HELM_CHART_VERSION }} \
+          -f ${{ env.CHART_PATH }}/values.yaml \
+          -f ${{ env.CHART_PATH }}/values/values_dev.yaml
