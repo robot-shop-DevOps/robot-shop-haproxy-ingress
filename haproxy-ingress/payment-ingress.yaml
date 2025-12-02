@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+
+kind: Ingress
+
+metadata:
+  name: payment
+  namespace: payment-microservice
+  labels:
+    project: Robot-Shop
+    technology: HAProxy
+    environment: dev 
+  annotations:
+    haproxy.org/path-rewrite: /payment/(.*) /\1
+
+spec:
+  ingressClassName: haproxy
+  rules:
+  - http:
+      paths:
+      - path: /payment
+        pathType: Prefix
+        backend:
+          service:
+            name: payment
+            port:
+              number: 8426

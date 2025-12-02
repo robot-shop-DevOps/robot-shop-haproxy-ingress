@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+
+kind: Ingress
+
+metadata:
+  name: ratings
+  namespace: ratings-microservice
+  labels:
+    project: Robot-Shop
+    technology: HAProxy
+    environment: dev 
+  annotations:
+    haproxy.org/path-rewrite: /ratings/(.*) /\1
+
+spec:
+  ingressClassName: haproxy
+  rules:
+  - http:
+      paths:
+      - path: /ratings
+        pathType: Prefix
+        backend:
+          service:
+            name: ratings
+            port:
+              number: 8626
