@@ -1,4 +1,4 @@
-name: Validate and Push HAProxy Controller helm charts to Development
+name: Validate and Deploy HAProxy Controller helm charts to Development
 
 on:
   workflow_dispatch:

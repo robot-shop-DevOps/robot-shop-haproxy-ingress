@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+
+kind: Ingress
+
+metadata:
+  name: cart
+  namespace: cart-microservice
+  labels:
+    project: Robot-Shop
+    technology: HAProxy
+    environment: dev 
+  annotations:
+    haproxy.org/path-rewrite: /cart/(.*) /\1
+
+spec:
+  ingressClassName: haproxy
+  rules:
+  - http:
+      paths:
+      - path: /cart
+        pathType: Prefix
+        backend:
+          service:
+            name: cart
+            port:
+              number: 8326
