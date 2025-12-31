@@ -11,6 +11,8 @@ on:
   pull_request:
     branches:
       - develop
+
+  workflow_dispatch:
     
 env:
   YAML_PATH: ./haproxy-ingress
