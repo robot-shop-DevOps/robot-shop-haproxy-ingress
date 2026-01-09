@@ -17,7 +17,7 @@ jobs:
       CHART_REPO_NAME: haproxytech
       CHART_REPO_URL: https://haproxytech.github.io/helm-charts
       CHART_NAME: kubernetes-ingress
-      CHART_VERSION: ${{ github.inputs.HAPROXY_HELM_CHART_VERSION }}
+      CHART_VERSION: ${{ github.event.inputs.HAPROXY_HELM_CHART_VERSION }}
       CHART_PATH: ./haproxy-controller
       VALUES_FILES: "./haproxy-controller/values.yaml ./haproxy-controller/values/values_dev.yaml"
     secrets: inherit
